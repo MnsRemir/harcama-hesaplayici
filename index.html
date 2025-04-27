@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Yurtdışı Üniversite Harcama Hesaplayıcı</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background-color: #f0f2f5;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    table {
+      width: 100%;
+      background: white;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    input[type="number"], input[type="text"] {
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    #total {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 25px;
+      font-size: 18px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .section-title {
+      font-size: 20px;
+      margin-top: 30px;
+      color: #34495e;
+    }
+    .add-expense {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Yurtdışı Üniversite Harcama Hesaplayıcı</h1>
+
+<!-- Üniversite Seçimi -->
+<div>
+  <label for="universitySelect">Amerika veya Avrupa'daki Üniversitenizi Seçin:</label>
+  <select id="universitySelect" onchange="updateUniversityDetails()">
+    <option value="" disabled selected>Bir Üniversite Seç</option>
+    <optgroup label="Amerika (Top 50)">
+      <option value="Harvard">Harvard University</option>
+      <option value="MIT">Massachusetts Institute of Technology</option>
+      <option value="Stanford">Stanford University</option>
+      <option value="Yale">Yale University</option>
+      <option value="Princeton">Princeton University</option>
+      <option value="Columbia">Columbia University</option>
+      <option value="UC Berkeley">University of California, Berkeley</option>
+      <option value="University of Chicago">University of Chicago</option>
+      <option value="California Institute of Technology">California Institute of Technology (Caltech)</option>
+      <option value="University of Pennsylvania">University of Pennsylvania</option>
+    </optgroup>
+    <optgroup label="Avrupa (Top 10)">
+      <option value="Oxford">University of Oxford</option>
+      <option value="Cambridge">University of Cambridge</option>
+      <option value="ETH Zurich">ETH Zurich</option>
+      <option value="Imperial College London">Imperial College London</option>
+      <option value="LMU Munich">Ludwig Maximilian University of Munich</option>
+      <option value="UCL">University College London</option>
+      <option value="EPFL">École Polytechnique Fédérale de Lausanne (EPFL)</option>
+      <option value="University of Amsterdam">University of Amsterdam</option>
+      <option value="Leiden University">Leiden University</option>
+      <option value="Paris Sciences et Lettres University">Paris Sciences et Lettres University</option>
+    </optgroup>
+  </select>
+</div>
+
+<div class="section-title">Zorunlu Giderler</div>
+<table id="expenseTable">
+  <tbody>
+    <tr><td>IELTS Sınavı</td><td><input type="number" value="0"></td></tr>
+    <tr><td>SAT Sınavı</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Başvuru Ücretleri</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Vize Ücreti</td><td><input type="number" value="0" class="covered"></td></tr>
+    <tr><td>Uçak Bileti</td><td><input type="number" value="0" class="covered"></td></tr>
+    <tr><td>Sağlık Sigortası</td><td><input type="number" value="0" class="covered"></td></tr>
+  </tbody>
+</table>
+
+<div class="add-expense">
+  <div class="section-title">Yeni Harcama Ekle</div>
+  <input type="text" id="newName" placeholder="Harcama Adı">
+  <input type="number" id="newAmount" placeholder="Tutar">
+  <button onclick="addExpense()">Ekle</button>
+</div>
+
+<button onclick="calculateTotal()">Toplamı Hesapla</button>
+
+<div id="total">Toplam Harcama: 0</div>
+
+<script>
+// Üniversiteye göre burslu/Need-Blind durumlarını kontrol et
+function updateUniversityDetails() {
+  const university = document.getElementById('universitySelect').value;
+  const coveredItems = document.querySelectorAll('.covered');
+
+  // Top 50 Amerika üniversiteleri ve Avrupa üniversiteleri için burslu/Need-Blind kontrolü
+  const needBlindSchools = [
+    'Harvard', 'MIT', 'Stanford', 'Yale', 'Princeton', 'Columbia', 'UC Berkeley', 'University of Chicago', 'California Institute of Technology', 'University of Pennsylvania'
+  ];
+
+  const europeanSchools = [
+    'Oxford', 'Cambridge', 'ETH Zurich', 'Imperial College London', 'LMU Munich', 'UCL', 'EPFL', 'University of Amsterdam', 'Leiden University', 'Paris Sciences et Lettres University'
+  ];
+
+  // Eğer Need-Blind ise, uçak bileti, vize ve sağlık sigortası giderlerini sıfırla
+  if (needBlindSchools.includes(university) || europeanSchools.includes(university)) {
+    coveredItems.forEach(item => {
+      item.value = 0;
+      item.disabled = true;
+    });
+  } else {
+    coveredItems.forEach(item => {
+      item.disabled = false;
+    });
+  }
+}
+
+function calculateTotal() {
+  let total = 0;
+  const inputs = document.querySelectorAll("#expenseTable input[type='number']");
+  inputs.forEach(input => {
+    total += parseFloat(input.value) || 0;
+  });
+  document.getElementById('total').innerText = "Toplam Harcama: " + total.toLocaleString() + " ₺/$/€";
+}
+
+function addExpense() {
+  const name = document.getElementById('newName').value.trim();
+  const amount = document.getElementById('newAmount').value.trim();
+
+  if (name === '' || amount === '') {
+    alert("Lütfen hem isim hem de tutar giriniz.");
+    return;
+  }
+
+  const table = document.getElementById('expenseTable').getElementsByTagName('tbody')[0];
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `<td>${name}</td><td><input type="number" value="${amount}"></td>`;
+  table.appendChild(newRow);
+
+  document.getElementById('newName').value = '';
+  document.getElementById('newAmount').value = '';
+}
+</script>
+
+</body>
+</html>
